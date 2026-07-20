@@ -1,0 +1,16 @@
+/indexer
+/yanakilla
+/bin/
+
+*.prof
+*.pprof
+profiles/*.png
+profiles/*.svg
+
+data/
+enron_mail_*/
+*.tgz
+
+node_modules/
+.DS_Store
+.env
