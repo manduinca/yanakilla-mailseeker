@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -40,9 +41,15 @@ func main() {
 		IdleTimeout:       120 * time.Second,
 	}
 
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("no se pudo abrir el puerto %d: %v", *port, err)
+	}
+
+	fmt.Printf("Yanakilla is running in http://localhost:%d\n", *port)
+
 	go func() {
-		fmt.Printf("Yanakilla is running in http://localhost:%d\n", *port)
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := srv.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("servidor: %v", err)
 		}
 	}()
