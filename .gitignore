@@ -4,8 +4,8 @@
 
 *.prof
 *.pprof
-profiles/*.png
-profiles/*.svg
+
+
 
 data/
 enron_mail_*/
