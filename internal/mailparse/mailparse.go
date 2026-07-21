@@ -1,9 +1,11 @@
 package mailparse
 
 import (
+	"bytes"
 	"io"
 	"net/mail"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -21,13 +23,36 @@ type Email struct {
 }
 
 func ParseFile(path, root string) (*Email, error) {
-	f, err := os.Open(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	return ParseBytes(data, folderOf(path, root))
+}
 
-	msg, err := mail.ReadMessage(f)
+func Parse(r io.Reader, folder string) (*Email, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return ParseBytes(data, folder)
+}
+
+func ParseBytes(data []byte, folder string) (*Email, error) {
+	email, err := decode(data, folder)
+	if err == nil {
+		return email, nil
+	}
+
+	repaired, changed := foldLooseHeaders(data)
+	if !changed {
+		return nil, err
+	}
+	return decode(repaired, folder)
+}
+
+func decode(data []byte, folder string) (*Email, error) {
+	msg, err := mail.ReadMessage(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
@@ -45,12 +70,64 @@ func ParseFile(path, root string) (*Email, error) {
 		Cc:        normalizeList(msg.Header.Get("Cc")),
 		Bcc:       normalizeList(msg.Header.Get("Bcc")),
 		Subject:   strings.TrimSpace(msg.Header.Get("Subject")),
-		Folder:    folderOf(path, root),
+		Folder:    folder,
 		Content:   string(body),
 	}, nil
 }
 
+func foldLooseHeaders(data []byte) ([]byte, bool) {
+	var out bytes.Buffer
+	out.Grow(len(data) + 64)
+
+	changed := false
+	rest := data
+
+	for len(rest) > 0 {
+		var line []byte
+		if idx := bytes.IndexByte(rest, '\n'); idx < 0 {
+			line, rest = rest, nil
+		} else {
+			line, rest = rest[:idx+1], rest[idx+1:]
+		}
+
+		trimmed := bytes.TrimRight(line, "\r\n")
+
+		if len(trimmed) == 0 {
+			out.Write(line)
+			out.Write(rest)
+			return out.Bytes(), changed
+		}
+
+		if trimmed[0] == ' ' || trimmed[0] == '\t' || isHeaderStart(trimmed) {
+			out.Write(line)
+			continue
+		}
+
+		out.WriteByte(' ')
+		out.Write(line)
+		changed = true
+	}
+
+	return out.Bytes(), changed
+}
+
+func isHeaderStart(line []byte) bool {
+	colon := bytes.IndexByte(line, ':')
+	if colon <= 0 {
+		return false
+	}
+	for _, c := range line[:colon] {
+		if c <= ' ' || c >= 0x7f {
+			return false
+		}
+	}
+	return true
+}
+
 func folderOf(path, root string) string {
+	if root == "" {
+		return FolderOfEntry(filepath.ToSlash(path))
+	}
 	rel, err := filepath.Rel(root, path)
 	if err != nil {
 		return ""
@@ -60,6 +137,14 @@ func folderOf(path, root string) string {
 		return ""
 	}
 	return filepath.ToSlash(dir)
+}
+
+func FolderOfEntry(name string) string {
+	dir := path.Dir(name)
+	if dir == "." || dir == "/" {
+		return ""
+	}
+	return dir
 }
 
 func normalizeList(v string) string {
