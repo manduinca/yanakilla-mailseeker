@@ -14,3 +14,14 @@ enron_mail_*/
 node_modules/
 .DS_Store
 .env
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+
+tfplan
+*.tfplan

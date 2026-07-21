@@ -1,0 +1,31 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/user-data.log) 2>&1
+
+dd if=/dev/zero of=/swapfile bs=128M count=32
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+dnf update -y
+dnf install -y docker git
+
+COMPOSE_VERSION=v2.29.7
+mkdir -p /usr/libexec/docker/cli-plugins
+curl -fsSL "https://github.com/docker/compose/releases/download/$${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+  -o /usr/libexec/docker/cli-plugins/docker-compose
+chmod +x /usr/libexec/docker/cli-plugins/docker-compose
+
+systemctl enable --now docker
+
+git clone ${repo_url} /opt/app
+cd /opt/app
+
+cat > .env <<'ENVEOF'
+ZINC_USER=${zinc_user}
+ZINC_PASSWORD=${zinc_password}
+ENVEOF
+chmod 600 .env
+
+docker compose -f docker-compose.prod.yml up -d --build

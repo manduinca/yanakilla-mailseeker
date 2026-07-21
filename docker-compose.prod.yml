@@ -1,0 +1,29 @@
+services:
+  zincsearch:
+    image: public.ecr.aws/zinclabs/zincsearch:latest
+    container_name: yanakilla-zinc
+    restart: unless-stopped
+    environment:
+      ZINC_FIRST_ADMIN_USER: ${ZINC_USER:-admin}
+      ZINC_FIRST_ADMIN_PASSWORD: ${ZINC_PASSWORD:?definir ZINC_PASSWORD}
+      ZINC_DATA_PATH: /data
+    volumes:
+      - zinc-data:/data
+    expose:
+      - "4080"
+
+  app:
+    build: .
+    container_name: yanakilla-app
+    restart: unless-stopped
+    depends_on:
+      - zincsearch
+    environment:
+      ZINC_URL: http://zincsearch:4080
+      ZINC_USER: ${ZINC_USER:-admin}
+      ZINC_PASSWORD: ${ZINC_PASSWORD:?definir ZINC_PASSWORD}
+    ports:
+      - "80:3000"
+
+volumes:
+  zinc-data:

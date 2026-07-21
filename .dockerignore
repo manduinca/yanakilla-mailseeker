@@ -1,0 +1,15 @@
+.git
+bin/
+indexer
+yanakilla
+web/node_modules
+web/dist
+profiles/
+deploy/
+*.prof
+*.pprof
+*.tgz
+*.csv
+data/
+enron_mail_*/
+.DS_Store
