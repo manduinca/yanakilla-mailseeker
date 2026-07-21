@@ -5,7 +5,7 @@ output "public_ip" {
 
 output "app_url" {
   description = "URL de la aplicación"
-  value       = "http://${module.app_server.public_ip}"
+  value       = var.domain != "" ? "https://${var.domain}" : "http://${module.app_server.public_ip}"
 }
 
 output "ssh_command" {

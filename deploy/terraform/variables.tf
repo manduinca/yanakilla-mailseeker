@@ -44,6 +44,12 @@ variable "app_repo_url" {
   default     = "https://github.com/manduinca/yanakilla-mailseeker.git"
 }
 
+variable "domain" {
+  description = "Dominio para el certificado HTTPS automático; vacío sirve solo por HTTP"
+  type        = string
+  default     = ""
+}
+
 variable "zinc_user" {
   description = "Usuario administrador de ZincSearch"
   type        = string

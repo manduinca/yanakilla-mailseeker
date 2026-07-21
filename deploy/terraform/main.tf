@@ -52,5 +52,6 @@ module "app_server" {
     repo_url      = var.app_repo_url
     zinc_user     = var.zinc_user
     zinc_password = var.zinc_password
+    domain        = var.domain
   })
 }

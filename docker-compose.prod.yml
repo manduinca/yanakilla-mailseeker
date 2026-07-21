@@ -22,8 +22,26 @@ services:
       ZINC_URL: http://zincsearch:4080
       ZINC_USER: ${ZINC_USER:-admin}
       ZINC_PASSWORD: ${ZINC_PASSWORD:?definir ZINC_PASSWORD}
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: yanakilla-caddy
+    restart: unless-stopped
+    depends_on:
+      - app
     ports:
-      - "80:3000"
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
 volumes:
   zinc-data:
+  caddy-data:
+  caddy-config:

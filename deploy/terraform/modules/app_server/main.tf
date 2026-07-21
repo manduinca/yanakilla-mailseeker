@@ -17,6 +17,14 @@ resource "aws_security_group" "this" {
   }
 
   ingress {
+    description = "HTTPS publico"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     description = "SSH restringido"
     from_port   = 22
     to_port     = 22
@@ -56,5 +64,9 @@ resource "aws_instance" "this" {
 
   tags = {
     Name = "${var.name_prefix}-ec2"
+  }
+
+  lifecycle {
+    ignore_changes = [user_data, ami]
   }
 }
