@@ -20,6 +20,8 @@ node_modules/
 *.tfstate.*
 *.tfvars
 !*.tfvars.example
+
+tls/
 crash.log
 crash.*.log
 

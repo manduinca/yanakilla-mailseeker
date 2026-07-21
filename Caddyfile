@@ -1,3 +1,4 @@
 {$DOMAIN:localhost} {
 	reverse_proxy app:3000
+	{$CADDY_TLS}
 }

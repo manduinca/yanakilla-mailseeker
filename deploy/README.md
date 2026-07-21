@@ -11,7 +11,15 @@ Infraestructura como código con Terraform. Levanta una instancia EC2 que ejecut
                                    └── yanakilla-zinc  (contenedor, :4080 interno)
 ```
 
-La instancia arranca con un script que instala Docker, clona el repositorio, construye la imagen y levanta `docker-compose.prod.yml`. El puerto 80 queda abierto a internet; el 22 solo a la IP indicada.
+La instancia arranca con un script que instala Docker, clona el repositorio, construye la imagen y levanta `docker-compose.prod.yml`. Los puertos 80 y 443 quedan abiertos a internet; el 22 solo a la IP indicada.
+
+### TLS
+
+Un contenedor Caddy termina el TLS delante de la aplicación. Hay dos modos, según la variable `CADDY_TLS`:
+
+- **Certificado propio (por defecto en producción tras un proxy):** montar el certificado y la clave en `tls/` y definir
+  `CADDY_TLS="tls /etc/caddy/tls/origin.pem /etc/caddy/tls/origin.key"`. Es el modo indicado cuando el dominio va detrás de un CDN que valida el origen con su propia CA.
+- **Let's Encrypt automático:** dejar `CADDY_TLS` vacío. Caddy emite y renueva el certificado por ACME. Requiere que el dominio resuelva directo a la instancia (sin proxy) y los puertos 80/443 abiertos.
 
 ## Estructura
 
