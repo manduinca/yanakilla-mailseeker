@@ -172,3 +172,15 @@ cd web && npm run dev
 ```
 
 Vite levanta en el puerto 5173 y hace proxy de `/api` hacia el servidor Go en el 3000.
+
+## Despliegue
+
+El directorio [`deploy/`](deploy/) contiene la infraestructura como código con Terraform: una instancia EC2 en la VPC por defecto que ejecuta ZincSearch y la aplicación con Docker Compose. El arranque instala Docker, clona el repositorio, construye la imagen y levanta los servicios. Los valores propios de cada cuenta se pasan por `terraform.tfvars`, que no se versiona.
+
+```bash
+cd deploy/terraform
+cp terraform.tfvars.example terraform.tfvars
+terraform init && terraform apply
+```
+
+Detalle completo en [`deploy/README.md`](deploy/README.md).
